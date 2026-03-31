@@ -418,6 +418,21 @@ function mapEnrichmentRow(row: Record<string, unknown>): Enrichment {
   };
 }
 
+export type LPWithEnrichment = LP & { enrichment: Enrichment | null };
+
+export function parseSupabaseLps(
+  data: unknown[] | null | undefined,
+): LPWithEnrichment[] {
+  const rows = (data ?? []) as Array<Record<string, unknown>>;
+  return rows.map((row) => {
+    const { enrichment: encRaw, ...lpRest } = row;
+    const lp = mapLPRow(lpRest);
+    const encObj = normalizeEnrichmentRow(encRaw);
+    const enrichment = encObj ? mapEnrichmentRow(encObj) : null;
+    return { ...lp, enrichment };
+  });
+}
+
 function mapLPRow(row: Record<string, unknown>): LP {
   return {
     id: String(row.id),
