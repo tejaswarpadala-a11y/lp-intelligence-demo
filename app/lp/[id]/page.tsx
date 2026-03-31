@@ -1,3 +1,4 @@
+import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
 import { BackButton } from "@/components/BackButton";
 import { CopyButton } from "@/components/CopyButton";
 import { ExportButton } from "@/components/ExportButton";
@@ -467,9 +468,15 @@ export default async function LPProfilePage({
 
       {/* Section 6 — Actions */}
       <section className="flex flex-wrap gap-3">
-        <ProfileToastButton
-          label="Add to Shortlist"
-          toastMessage="Shortlist feature coming in D5"
+        <AddToShortlistDropdown
+          items={[
+            {
+              lpId: lp.id,
+              fitScore: Math.round(score.total_score),
+              lpName: lp.name,
+            },
+          ]}
+          buttonLabel="Add to Shortlist"
         />
         <ExportButton rows={csvRows} filenameBase={fileBase} />
       </section>

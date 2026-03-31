@@ -1,5 +1,6 @@
 "use client";
 
+import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
 import { FUND_CONFIG } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -593,7 +594,16 @@ export default function Home() {
                 </span>
               ) : null}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <AddToShortlistDropdown
+                items={filteredAndScored.map((lp) => ({
+                  lpId: lp.id,
+                  fitScore: Math.round(lp.score.total_score),
+                  lpName: lp.name,
+                }))}
+                buttonLabel={`Add all ${filteredAndScored.length} to shortlist`}
+                disabled={loading || filteredAndScored.length === 0}
+              />
               <label htmlFor="sort" className="text-sm text-gray-600">
                 Sort
               </label>
@@ -683,13 +693,15 @@ export default function Home() {
                       <span>Check size: {formatCheckSize(lp.enrichment)}</span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => showToast("Coming in D5")}
-                    className="shrink-0 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    Add to shortlist
-                  </button>
+                  <AddToShortlistDropdown
+                    items={[
+                      {
+                        lpId: lp.id,
+                        fitScore: Math.round(lp.score.total_score),
+                        lpName: lp.name,
+                      },
+                    ]}
+                  />
                 </li>
               ))}
             </ul>
