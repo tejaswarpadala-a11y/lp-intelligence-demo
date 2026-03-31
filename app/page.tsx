@@ -2,6 +2,7 @@
 
 import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
 import { FitMeter } from "@/components/FitMeter";
+import { Switch } from "@/components/ui/switch";
 import {
   deletePreset,
   listPresets,
@@ -9,6 +10,7 @@ import {
   savePreset,
   type PresetRecord,
 } from "@/app/actions/presets";
+import { FUND_CONFIG } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
 import {
   calculateScore,
@@ -17,8 +19,44 @@ import {
   type LPWithEnrichment,
 } from "@/lib/scoring";
 import type { ScoreResult, ScoringWeights } from "@/lib/types";
+import { ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+
+function RangeSlider({
+  value,
+  min,
+  max,
+  step,
+  disabled,
+  onChange,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  disabled?: boolean;
+  onChange: (next: number) => void;
+}) {
+  const clamped = Math.max(min, Math.min(max, value));
+  const pct = max === min ? 0 : ((clamped - min) / (max - min)) * 100;
+  return (
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={clamped}
+      disabled={disabled}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-full appearance-none bg-transparent disabled:opacity-50"
+      style={{
+        background: `linear-gradient(to right, rgb(16 185 129) 0%, rgb(16 185 129) ${pct}%, rgb(241 245 249) ${pct}%, rgb(241 245 249) 100%)`,
+        height: "3px",
+      }}
+    />
+  );
+}
 
 const LIST_SEGMENTS = [
   "US Family Offices",
@@ -253,6 +291,10 @@ export default function Home() {
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [savingPreset, setSavingPreset] = useState(false);
   const [presetNameDraft, setPresetNameDraft] = useState("");
+  const [isScanning, setIsScanning] = useState(false);
+  const [openFilterSection, setOpenFilterSection] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -285,6 +327,21 @@ export default function Home() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    setIsScanning(true);
+    const t = window.setTimeout(() => setIsScanning(false), 1200);
+    return () => window.clearTimeout(t);
+  }, [
+    loading,
+    emergingManagerFilter,
+    weights,
+    selectedListSegments,
+    selectedCategories,
+    selectedCountries,
+    minScoreThreshold,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -496,28 +553,27 @@ export default function Home() {
       ) : null}
 
       {/* Left panel */}
-      <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-slate-50">
-        <div className="space-y-8 p-5">
+      <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-slate-100 bg-white px-4 py-4">
+        <div className="mb-3">
+          <div className="font-serif text-base font-semibold text-slate-900">
+            {FUND_CONFIG.fundName}
+          </div>
+          <div className="mt-0.5 text-xs uppercase tracking-widest text-slate-400">
+            LP Intelligence Platform
+          </div>
+        </div>
+        <div className="border-t border-slate-100 my-3" />
+        <div className="space-y-6">
           <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-widest text-slate-500">
               Pre-filters
             </h2>
             <div className="flex items-start gap-3">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={emergingManagerFilter}
-                onClick={() => setEmergingManagerFilter((v) => !v)}
-                className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  emergingManagerFilter ? "bg-emerald-600" : "bg-slate-300"
-                }`}
-              >
-                <span
-                  className={`absolute left-0.5 top-0.5 block h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                    emergingManagerFilter ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
+              <Switch
+                checked={emergingManagerFilter}
+                onCheckedChange={(v) => setEmergingManagerFilter(Boolean(v))}
+                className="data-checked:bg-emerald-600 data-unchecked:bg-slate-200"
+              />
               <div>
                 <p className="text-sm font-medium text-gray-900">
                   Emerging manager friendly only
@@ -530,138 +586,221 @@ export default function Home() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Scoring weights — must sum to 100%
-            </h2>
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-xs font-medium uppercase tracking-widest text-slate-500">
+                Scoring weights
+              </h2>
+              <span className="text-xs text-slate-400">
+                must sum to <span className="font-mono">100%</span>
+              </span>
+            </div>
             <div className="space-y-4">
               {WEIGHT_ORDER.map((key) => (
                 <div key={key}>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <label htmlFor={`w-${key}`} className="text-gray-800">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-widest text-slate-500">
                       {WEIGHT_LABELS[key]}
-                    </label>
-                    <span className="font-mono text-gray-600">
+                    </span>
+                    <span className="font-mono text-xs font-medium text-emerald-600">
                       {weights[key]}%
                     </span>
                   </div>
-                  <input
-                    id={`w-${key}`}
-                    type="range"
+                  <RangeSlider
+                    value={weights[key]}
                     min={0}
                     max={100}
                     step={1}
-                    value={weights[key]}
                     disabled={loading || !config}
-                    onChange={(e) =>
-                      setWeights(
-                        rebalanceWeights(weights, key, Number(e.target.value)),
-                      )
+                    onChange={(next) =>
+                      setWeights(rebalanceWeights(weights, key, next))
                     }
-                    className="w-full accent-slate-700 disabled:opacity-50"
                   />
                 </div>
               ))}
             </div>
             <p
-              className={`mt-2 text-sm font-mono ${
-                weightSum !== 100 ? "font-medium text-red-600" : "text-gray-600"
+              className={`mt-2 text-xs font-mono ${
+                weightSum !== 100 ? "font-medium text-red-500" : "text-slate-500"
               }`}
             >
               Sum: {weightSum}%
             </p>
           </section>
 
+          <div className="border-t border-slate-100 my-3" />
+
           <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Filter by
-            </h2>
-            <div className="space-y-5">
-              <div>
-                <p className="mb-2 text-sm font-medium text-gray-800">
-                  List segment
-                </p>
-                <ul className="space-y-2">
-                  {LIST_SEGMENTS.map((seg) => (
-                    <li key={seg}>
-                      <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
-                        <input
-                          type="checkbox"
-                          className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
-                          checked={selectedListSegments.includes(seg)}
-                          onChange={() => toggleSegment(seg)}
-                          disabled={loading}
-                        />
-                        {seg}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="mb-2 text-sm font-medium text-gray-800">
-                  LP Category
-                </p>
-                <ul className="space-y-2">
-                  {LP_CATEGORIES.map((cat) => (
-                    <li key={cat}>
-                      <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
-                        <input
-                          type="checkbox"
-                          className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
-                          checked={selectedCategories.includes(cat)}
-                          onChange={() => toggleCategory(cat)}
-                          disabled={loading}
-                        />
-                        {cat}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="mb-2 text-sm font-medium text-gray-800">
-                  Country
-                </p>
-                <ul className="max-h-48 space-y-2 overflow-y-auto pr-1">
-                  {countries.map(({ code, count }) => (
-                    <li key={code}>
-                      <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
-                        <input
-                          type="checkbox"
-                          className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
-                          checked={selectedCountries.includes(code)}
-                          onChange={() => toggleCountry(code)}
-                          disabled={loading}
-                        />
-                        {code} ({count})
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <div className="mb-1 flex justify-between text-sm">
-                  <label htmlFor="min-score" className="text-gray-800">
-                    Show LPs scoring{" "}
-                    <span className="font-mono">{minScoreThreshold}</span> or
-                    above
-                  </label>
-                  <span className="font-mono text-gray-600">
-                    {minScoreThreshold}
-                  </span>
-                </div>
-                <input
-                  id="min-score"
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={minScoreThreshold}
-                  onChange={(e) =>
-                    setMinScoreThreshold(Number(e.target.value))
+            <div className="divide-y divide-slate-100">
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenFilterSection((v) =>
+                      v === "list-segment" ? null : "list-segment",
+                    )
                   }
-                  className="w-full accent-slate-700"
-                />
+                  className="flex justify-between items-center w-full py-2 text-left"
+                >
+                  <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">
+                    List segment
+                  </span>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                      openFilterSection === "list-segment"
+                        ? "rotate-180"
+                        : "rotate-0"
+                    }`}
+                  />
+                </button>
+                {openFilterSection === "list-segment" ? (
+                  <div className="pb-3">
+                    <ul className="space-y-2">
+                      {LIST_SEGMENTS.map((seg) => (
+                        <li key={seg}>
+                          <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
+                              checked={selectedListSegments.includes(seg)}
+                              onChange={() => toggleSegment(seg)}
+                              disabled={loading}
+                            />
+                            {seg}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenFilterSection((v) =>
+                      v === "lp-category" ? null : "lp-category",
+                    )
+                  }
+                  className="flex justify-between items-center w-full py-2 text-left"
+                >
+                  <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">
+                    LP Category
+                  </span>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                      openFilterSection === "lp-category"
+                        ? "rotate-180"
+                        : "rotate-0"
+                    }`}
+                  />
+                </button>
+                {openFilterSection === "lp-category" ? (
+                  <div className="pb-3">
+                    <ul className="space-y-2">
+                      {LP_CATEGORIES.map((cat) => (
+                        <li key={cat}>
+                          <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
+                              checked={selectedCategories.includes(cat)}
+                              onChange={() => toggleCategory(cat)}
+                              disabled={loading}
+                            />
+                            {cat}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenFilterSection((v) =>
+                      v === "country" ? null : "country",
+                    )
+                  }
+                  className="flex justify-between items-center w-full py-2 text-left"
+                >
+                  <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">
+                    Country
+                  </span>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                      openFilterSection === "country" ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
+                </button>
+                {openFilterSection === "country" ? (
+                  <div className="pb-3">
+                    <ul className="max-h-48 space-y-2 overflow-y-auto pr-1">
+                      {countries.map(({ code, count }) => (
+                        <li key={code}>
+                          <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
+                              checked={selectedCountries.includes(code)}
+                              onChange={() => toggleCountry(code)}
+                              disabled={loading}
+                            />
+                            {code} (<span className="font-mono">{count}</span>)
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenFilterSection((v) =>
+                      v === "min-score" ? null : "min-score",
+                    )
+                  }
+                  className="flex justify-between items-center w-full py-2 text-left"
+                >
+                  <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">
+                    Minimum fit score
+                  </span>
+                  <ChevronDownIcon
+                    className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                      openFilterSection === "min-score"
+                        ? "rotate-180"
+                        : "rotate-0"
+                    }`}
+                  />
+                </button>
+                {openFilterSection === "min-score" ? (
+                  <div className="pb-3">
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs uppercase tracking-widest text-slate-500 font-medium">
+                          Threshold
+                        </span>
+                        <span className="font-mono text-xs font-medium text-emerald-600">
+                          {minScoreThreshold}
+                        </span>
+                      </div>
+                      <RangeSlider
+                        value={minScoreThreshold}
+                        min={0}
+                        max={100}
+                        step={1}
+                        disabled={loading}
+                        onChange={(next) => setMinScoreThreshold(next)}
+                      />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           </section>
@@ -781,6 +920,11 @@ export default function Home() {
                   excluded by pre-filter
                 </span>
               ) : null}
+              {isScanning && !loading ? (
+                <div className="mt-0.5 text-xs font-mono text-emerald-600">
+                  Scanning LP database...
+                </div>
+              ) : null}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <AddToShortlistDropdown
@@ -853,7 +997,13 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div
+              className={`divide-y divide-slate-100 ${
+                isScanning
+                  ? "border border-emerald-300/70 animate-[border-pulse_600ms_2]"
+                  : ""
+              }`}
+            >
               {filteredAndScored.map((lp) => (
                 <div
                   key={lp.id}

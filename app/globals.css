@@ -1,11 +1,7 @@
+@import "tw-animate-css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
 /* Sightline Design System */
 body {
@@ -41,4 +37,37 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Sightline range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 2px solid rgb(16 185 129);
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: -5.5px; /* centers 14px thumb on 3px track */
+}
+input[type="range"]::-moz-range-track {
+  height: 3px;
+  background: transparent;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 2px solid rgb(16 185 129);
+  border-radius: 0;
+  box-shadow: none;
 }

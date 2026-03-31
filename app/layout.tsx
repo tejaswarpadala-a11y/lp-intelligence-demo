@@ -3,6 +3,7 @@ import { FUND_CONFIG, isDemoMode } from "@/lib/config";
 import type { Metadata } from "next";
 import { JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sourceSerif.variable} ${jetbrainsMono.variable}`}
+      className={cn(sourceSerif.variable, jetbrainsMono.variable, "font-sans")}
     >
       <body
         className="min-h-screen bg-white text-gray-900 antialiased"
