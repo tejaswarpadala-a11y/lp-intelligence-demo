@@ -1,6 +1,7 @@
 "use client";
 
 import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
+import { FitMeter } from "@/components/FitMeter";
 import {
   deletePreset,
   listPresets,
@@ -174,14 +175,50 @@ function formatCheckSize(enrichment: LPWithEnrichment["enrichment"]): string {
   return `≤$${fmt(mx!)}`;
 }
 
-function scoreBadgeClasses(score: ScoreResult): string {
-  if (!score.is_scored)
-    return "bg-slate-50 text-slate-500 border border-slate-200";
-  const t = score.total_score;
-  if (t >= 80) return "bg-emerald-50 text-emerald-700 border border-emerald-200";
-  if (t >= 60) return "bg-amber-50 text-amber-700 border border-amber-200";
-  if (t >= 40) return "bg-slate-100 text-slate-600 border border-slate-200";
-  return "bg-slate-50 text-slate-400 border border-slate-200";
+function matchSnippet(lp: LPWithEnrichment, score: ScoreResult): string {
+  const e = lp.enrichment;
+  if (!e) return "";
+
+  const thesis = e.thesis_notes?.trim();
+  if (thesis) {
+    const first = thesis.split(/(?<=[.!?])\s+/)[0]?.trim() || thesis;
+    const t = first.length > 80 ? `${first.slice(0, 77).trimEnd()}…` : first;
+    return t;
+  }
+
+  if (e.open_to_emerging_managers === true)
+    return "Emerging manager program active";
+  if (e.healthcare_focus === "true") return "Confirmed healthcare fund investor";
+  if (e.invests_in_funds === "true") return "Active fund-of-funds LP";
+
+  if (score.is_scored) {
+    const b = score.breakdown;
+    const signals = [
+      { name: "Healthcare focus", v: b.healthcare.score, max: b.healthcare.max },
+      {
+        name: "Invests in VC funds",
+        v: b.invests_in_funds.score,
+        max: b.invests_in_funds.max,
+      },
+      {
+        name: "Value-based orientation",
+        v: b.value_based.score,
+        max: b.value_based.max,
+      },
+      { name: "Check size match", v: b.check_size.score, max: b.check_size.max },
+      { name: "Invests in US funds", v: b.geography.score, max: b.geography.max },
+    ];
+    signals.sort((a, b) => {
+      const ra = a.max > 0 ? a.v / a.max : 0;
+      const rb = b.max > 0 ? b.v / b.max : 0;
+      if (rb !== ra) return rb - ra;
+      return b.v - a.v;
+    });
+    const top = signals[0]?.name;
+    if (top) return `Matched on ${top}`;
+  }
+
+  return "";
 }
 
 type SortBy = "score" | "name" | "country";
@@ -731,21 +768,17 @@ export default function Home() {
 
       {/* Right panel */}
       <main className="min-w-0 flex-1 overflow-y-auto bg-white">
-        <div className="border-b border-slate-100 px-6 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-gray-700">
-              <span className="font-medium text-gray-900">
-                <span className="font-mono">
-                  {loading ? "…" : filteredAndScored.length}
-                </span>{" "}
-                LPs
+        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white px-4 py-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm font-medium text-slate-600">
+              <span className="font-mono text-slate-900">
+                {loading ? "…" : filteredAndScored.length}
               </span>{" "}
-              match your filters
-              {emergingManagerFilter &&
-              emergingExcludedCount > 0 &&
-              !loading ? (
-                <span className="ml-2 text-amber-700">
-                  · {emergingExcludedCount} excluded by pre-filter
+              LP records
+              {emergingManagerFilter && emergingExcludedCount > 0 && !loading ? (
+                <span className="ml-2 text-xs text-amber-600">
+                  · <span className="font-mono">{emergingExcludedCount}</span>{" "}
+                  excluded by pre-filter
                 </span>
               ) : null}
             </div>
@@ -758,15 +791,16 @@ export default function Home() {
                 }))}
                 buttonLabel={`Add all ${filteredAndScored.length} to shortlist`}
                 disabled={loading || filteredAndScored.length === 0}
+                className="rounded-sm border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"
               />
-              <label htmlFor="sort" className="text-sm text-gray-600">
+              <label htmlFor="sort" className="text-xs text-slate-500">
                 Sort
               </label>
               <select
                 id="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortBy)}
-                className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-gray-900"
+                className="rounded-sm border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
               >
                 <option value="score">Fit Score ↓</option>
                 <option value="name">Name A-Z</option>
@@ -775,26 +809,34 @@ export default function Home() {
             </div>
           </div>
           {fetchError ? (
-            <p className="mt-2 text-sm text-red-600">{fetchError}</p>
+            <p className="mt-1 text-sm text-red-600">{fetchError}</p>
           ) : null}
         </div>
 
-        <div className="px-6 py-4">
+        <div>
           {loading ? (
-            <ul className="space-y-3">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <li
-                  key={i}
-                  className="animate-pulse rounded-sm border border-slate-100 bg-slate-50 p-4"
-                >
-                  <div className="h-4 w-1/3 rounded bg-slate-200" />
-                  <div className="mt-3 h-3 w-2/3 rounded bg-slate-200" />
-                  <div className="mt-2 h-3 w-1/2 rounded bg-slate-200" />
-                </li>
+            <div className="divide-y divide-slate-100">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="h-[52px] animate-pulse px-4 py-2.5">
+                  <div className="flex items-center gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="h-3 w-1/3 rounded bg-slate-200" />
+                      <div className="mt-2 h-2 w-2/5 rounded bg-slate-200" />
+                    </div>
+                    <div className="hidden w-40 sm:block">
+                      <div className="h-2 w-24 rounded bg-slate-200" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="h-2 w-20 rounded bg-slate-200" />
+                      <div className="h-[14px] w-[56px] rounded bg-slate-200" />
+                      <div className="h-6 w-6 rounded bg-slate-200" />
+                    </div>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           ) : filteredAndScored.length === 0 ? (
-            <div className="mx-auto max-w-md py-16 text-center">
+            <div className="mx-auto max-w-md px-4 py-16 text-center">
               <p className="text-base font-medium text-gray-900">
                 No LPs match your current settings.
               </p>
@@ -811,69 +853,68 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100">
               {filteredAndScored.map((lp) => (
-                <li
+                <div
                   key={lp.id}
-                  className="group flex flex-col gap-3 py-4 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex cursor-pointer items-center gap-4 px-4 py-2.5 hover:bg-slate-50/80"
                 >
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-0.5">
                       <Link
                         href={`/lp/${lp.id}`}
-                        className="font-serif font-semibold text-gray-900 hover:text-slate-700 hover:underline"
+                        className="truncate font-serif text-sm font-semibold text-slate-900 hover:underline"
                       >
                         {lp.name}
                       </Link>
-                      {lp.lp_category ? (
-                        <span className="rounded-sm border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-500">
-                          {lp.lp_category}
+                      <div className="flex items-center gap-2">
+                        <span className="max-w-xs truncate text-xs italic text-slate-400">
+                          {matchSnippet(lp, lp.score)}
                         </span>
-                      ) : null}
-                      <span
-                        className={`rounded-sm px-2 py-0.5 text-xs font-medium ${scoreBadgeClasses(
-                          lp.score,
-                        )}`}
-                      >
-                        {lp.score.is_scored ? (
-                          <>
-                            <span className="font-mono">
-                              {lp.score.total_score}
-                            </span>
-                            <span> · {lp.score.label}</span>
-                          </>
-                        ) : (
-                          <span>Not scored</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                      {lp.location ? <span>{lp.location}</span> : null}
-                      {lp.list_segment ? (
-                        <span className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-px text-slate-500">
-                          {lp.list_segment}
-                        </span>
-                      ) : null}
-                      <span>
-                        Check size:{" "}
-                        <span className="font-mono">
-                          {formatCheckSize(lp.enrichment)}
-                        </span>
-                      </span>
+                        {lp.lp_category ? (
+                          <span className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs text-slate-500">
+                            {lp.lp_category}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
-                  <AddToShortlistDropdown
-                    items={[
-                      {
-                        lpId: lp.id,
-                        fitScore: Math.round(lp.score.total_score),
-                        lpName: lp.name,
-                      },
-                    ]}
-                  />
-                </li>
+
+                  <div className="hidden items-center gap-2 sm:flex">
+                    <span className="text-xs text-slate-400">
+                      {lp.location ?? "—"}
+                    </span>
+                    {lp.list_segment ? (
+                      <span className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs text-slate-500">
+                        {lp.list_segment}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-mono text-slate-500">
+                      {formatCheckSize(lp.enrichment).replace(/\s*–\s*/g, "–")}
+                    </span>
+                    <FitMeter
+                      score={lp.score.is_scored ? lp.score.total_score : null}
+                      label={lp.score.is_scored ? lp.score.label : undefined}
+                      showNumber
+                    />
+                    <AddToShortlistDropdown
+                      items={[
+                        {
+                          lpId: lp.id,
+                          fitScore: Math.round(lp.score.total_score),
+                          lpName: lp.name,
+                        },
+                      ]}
+                      buttonLabel="+"
+                      className="h-7 w-7 rounded-sm border border-slate-200 bg-white text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"
+                    />
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </main>
