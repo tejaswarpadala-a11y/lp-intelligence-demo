@@ -26,7 +26,18 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env
+.env.local
+.env.*.local
+
+# LP / enrichment demo data (do not commit)
+lp-data.csv
+lp-data-*.csv
+apollo-comparison-results.csv
+enrichment-comparison-results.csv
+
+# internal docs
+/internal-docs/
 
 # vercel
 .vercel
