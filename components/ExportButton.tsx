@@ -3,13 +3,14 @@
 type ExportButtonProps = {
   rows: Record<string, string>[];
   filenameBase: string;
+  className?: string;
 };
 
 function escapeCsvCell(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
-export function ExportButton({ rows, filenameBase }: ExportButtonProps) {
+export function ExportButton({ rows, filenameBase, className }: ExportButtonProps) {
   function download() {
     if (rows.length === 0) return;
     const headers = Object.keys(rows[0]);
@@ -34,7 +35,10 @@ export function ExportButton({ rows, filenameBase }: ExportButtonProps) {
     <button
       type="button"
       onClick={download}
-      className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-slate-50"
+      className={
+        className ??
+        "rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-slate-50"
+      }
     >
       Export profile as CSV
     </button>

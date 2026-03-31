@@ -9,7 +9,7 @@ export function BackButton() {
     <button
       type="button"
       onClick={() => router.back()}
-      className="text-sm text-gray-500 hover:text-gray-800"
+      className="mb-4 block text-xs text-slate-400 hover:text-slate-700"
     >
       ← Back to results
     </button>
