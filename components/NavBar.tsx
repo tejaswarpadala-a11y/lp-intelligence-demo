@@ -101,10 +101,9 @@ export function NavBar() {
     router.refresh();
   }
 
-  const initial =
-    userLabel?.trim().charAt(0).toUpperCase() ??
-    userEmail?.trim().charAt(0).toUpperCase() ??
-    "?";
+  const displayName =
+    userLabel?.trim() || userEmail?.trim() || FUND_CONFIG.gpName;
+  const initial = displayName.charAt(0).toUpperCase() || "?";
 
   const navLink = (href: string, label: string) => {
     const active =
@@ -162,7 +161,7 @@ export function NavBar() {
                 {initial}
               </span>
               <span className="max-w-[120px] truncate text-gray-800">
-                {userLabel ?? userEmail ?? "…"}
+                {displayName || "…"}
               </span>
             </button>
             {menuOpen ? (

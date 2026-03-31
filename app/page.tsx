@@ -1,6 +1,13 @@
 "use client";
 
 import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
+import {
+  deletePreset,
+  listPresets,
+  loadPreset,
+  savePreset,
+  type PresetRecord,
+} from "@/app/actions/presets";
 import { createClient } from "@/lib/supabase/client";
 import {
   calculateScore,
@@ -208,6 +215,11 @@ export default function Home() {
   const [minScoreThreshold, setMinScoreThreshold] = useState(0);
   const [sortBy, setSortBy] = useState<SortBy>("score");
   const [toast, setToast] = useState<string | null>(null);
+  const [presets, setPresets] = useState<PresetRecord[]>([]);
+  const [presetMenuOpen, setPresetMenuOpen] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [presetNameDraft, setPresetNameDraft] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -234,6 +246,21 @@ export default function Home() {
         }
       } finally {
         if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await listPresets();
+        if (!cancelled) setPresets(rows);
+      } catch {
+        // ignore
       }
     })();
     return () => {
@@ -311,6 +338,11 @@ export default function Home() {
     weights,
   ]);
 
+  useEffect(() => {
+    if (loading) return;
+    document.title = `${filteredAndScored.length} LPs — LP Intelligence`;
+  }, [loading, filteredAndScored.length]);
+
   const weightSum = WEIGHT_ORDER.reduce((s, k) => s + weights[k], 0);
 
   function showToast(message: string) {
@@ -351,6 +383,72 @@ export default function Home() {
     setSelectedCountries((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
     );
+  }
+
+  async function onApplyPreset(presetId: string) {
+    try {
+      const p = await loadPreset(presetId);
+      if (!p) return;
+      setSelectedPresetId(p.id);
+      setWeights({
+        healthcare: p.healthcare_weight,
+        invests_in_funds: p.invests_in_funds_weight,
+        value_based: p.value_based_weight,
+        check_size: p.checksize_weight,
+        geography: p.geo_weight,
+      });
+      setEmergingManagerFilter(Boolean(p.emerging_manager_filter));
+      setMinScoreThreshold(Number(p.min_score_threshold) || 0);
+      if (p.list_segment_filter) setSelectedListSegments(p.list_segment_filter);
+      if (p.lp_category_filter) setSelectedCategories(p.lp_category_filter);
+      if (p.country_filter) setSelectedCountries(p.country_filter);
+      showToast(`Preset '${p.name}' loaded`);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Could not load preset");
+    } finally {
+      setPresetMenuOpen(false);
+    }
+  }
+
+  async function onDeletePreset(presetId: string) {
+    try {
+      await deletePreset(presetId);
+      setPresets((prev) => prev.filter((p) => p.id !== presetId));
+      if (selectedPresetId === presetId) setSelectedPresetId(null);
+      showToast("Preset deleted");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Could not delete preset");
+    }
+  }
+
+  async function onSavePresetCommit() {
+    const name = presetNameDraft.trim();
+    if (!name) {
+      setSavingPreset(false);
+      return;
+    }
+    try {
+      const { id } = await savePreset(
+        name,
+        weights,
+        {
+          emergingManagerFilter,
+          selectedListSegments,
+          selectedCategories,
+          selectedCountries,
+          minScoreThreshold,
+        },
+      );
+      const rows = await listPresets();
+      setPresets(rows);
+      setSelectedPresetId(id);
+      showToast(`Preset '${name}' saved`);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Could not save preset");
+    } finally {
+      setSavingPreset(false);
+      setPresetNameDraft("");
+    }
   }
 
   return (
@@ -537,24 +635,98 @@ export default function Home() {
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
               Saved presets
             </h2>
-            <select
-              disabled
-              className="mb-2 w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm text-gray-500"
-              defaultValue=""
-            >
-              <option value="" disabled>
-                Select a preset...
-              </option>
-            </select>
-            <button
-              type="button"
-              onClick={() =>
-                showToast("Coming in D7")
-              }
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Save current filters as preset
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setPresetMenuOpen((v) => !v)}
+                className="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50"
+              >
+                {selectedPresetId
+                  ? presets.find((p) => p.id === selectedPresetId)?.name ??
+                    "Select a preset..."
+                  : "Select a preset..."}
+              </button>
+              {presetMenuOpen ? (
+                <div className="absolute left-0 right-0 z-40 max-h-64 overflow-y-auto rounded border border-gray-200 bg-white shadow">
+                  {presets.length === 0 ? (
+                    <p className="px-3 py-2 text-sm text-gray-500">
+                      No presets yet
+                    </p>
+                  ) : (
+                    presets.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => void onApplyPreset(p.id)}
+                          className="min-w-0 flex-1 truncate text-left text-sm text-gray-800"
+                        >
+                          {p.name}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void onDeletePreset(p.id)}
+                          className="shrink-0 text-sm font-bold text-gray-400 hover:text-red-600"
+                          title="Delete preset"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : null}
+            </div>
+
+            {savingPreset ? (
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-600">
+                  Preset name:
+                </label>
+                <input
+                  className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm text-gray-900"
+                  value={presetNameDraft}
+                  onChange={(e) => setPresetNameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void onSavePresetCommit();
+                    if (e.key === "Escape") {
+                      setSavingPreset(false);
+                      setPresetNameDraft("");
+                    }
+                  }}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void onSavePresetCommit()}
+                    className="flex-1 rounded border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSavingPreset(false);
+                      setPresetNameDraft("");
+                    }}
+                    className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSavingPreset(true)}
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Save current filters as preset
+              </button>
+            )}
           </section>
         </div>
       </aside>

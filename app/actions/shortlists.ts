@@ -301,3 +301,25 @@ export async function getMostRecentShortlistNav(): Promise<{
     lp_count,
   };
 }
+
+export async function isLPInAnyShortlist(lpId: string): Promise<boolean> {
+  if (process.env.DEMO_MODE === "true") return true;
+
+  const supabase = createClient();
+  const userId = await requireUserId(supabase);
+
+  const { data, error } = await supabase
+    .from("shortlist_lps")
+    .select(
+      `
+      id,
+      shortlists!inner(id, created_by)
+    `,
+    )
+    .eq("lp_id", lpId)
+    .eq("shortlists.created_by", userId)
+    .limit(1);
+
+  if (error) return false;
+  return Boolean(data && data.length > 0);
+}

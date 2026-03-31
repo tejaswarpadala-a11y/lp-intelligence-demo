@@ -2,6 +2,7 @@ import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
 import { BackButton } from "@/components/BackButton";
 import { CopyButton } from "@/components/CopyButton";
 import { ExportButton } from "@/components/ExportButton";
+import { OutreachSection } from "@/components/OutreachSection";
 import { ProfileToastButton } from "@/components/ProfileToastButton";
 import {
   calculateScore,
@@ -324,6 +325,11 @@ export default async function LPProfilePage({
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
           Decision Maker
         </h2>
+        {enrichment?.confidence_score != null && enrichment.confidence_score < 60 ? (
+          <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Low confidence — verify manually
+          </p>
+        ) : null}
         <dl className="space-y-3 text-sm">
           <div>
             <dt className="text-xs font-medium text-gray-500">Name</dt>
@@ -451,20 +457,7 @@ export default async function LPProfilePage({
         </div>
       </section>
 
-      {/* Section 5 — Outreach */}
-      <section className="mb-12">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">Outreach</h2>
-        <button
-          type="button"
-          disabled
-          className="cursor-not-allowed rounded-md border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400"
-        >
-          ✉ Draft outreach email
-        </button>
-        <p className="mt-2 text-xs text-gray-500">
-          (Available after adding this LP to your shortlist)
-        </p>
-      </section>
+      <OutreachSection lpId={lp.id} />
 
       {/* Section 6 — Actions */}
       <section className="flex flex-wrap gap-3">
