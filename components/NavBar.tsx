@@ -113,11 +113,11 @@ export function NavBar() {
     return (
       <Link
         href={href}
-        className={
+        className={`border-b-2 pb-1 ${
           active
-            ? "font-semibold text-gray-900"
-            : "font-normal text-gray-600 hover:text-gray-900"
-        }
+            ? "border-emerald-500 text-slate-900"
+            : "border-transparent text-slate-500 hover:text-slate-700"
+        }`}
       >
         {label}
       </Link>
@@ -125,18 +125,18 @@ export function NavBar() {
   };
 
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="border-b border-slate-100 bg-white">
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:flex-nowrap">
         <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
           <Link
             href="/"
-            className="truncate text-sm font-semibold text-gray-900 hover:text-blue-700"
+            className="truncate font-serif text-sm font-semibold text-slate-900 hover:text-slate-700"
           >
             {FUND_CONFIG.fundName}
           </Link>
           <nav className="flex items-center gap-2 text-sm">
             {navLink("/", "Filter & Search")}
-            <span className="text-gray-300">|</span>
+            <span className="text-slate-200">|</span>
             {navLink("/shortlist", "Shortlist")}
           </nav>
         </div>
@@ -145,7 +145,7 @@ export function NavBar() {
           {shortlist ? (
             <Link
               href="/shortlist"
-              className="hidden max-w-[220px] truncate text-sm text-gray-600 hover:text-blue-700 sm:block"
+              className="hidden max-w-[220px] truncate text-sm text-slate-500 hover:text-slate-700 sm:block"
             >
               Current: {shortlist.name} · {shortlist.lp_count} LPs
             </Link>
@@ -155,20 +155,20 @@ export function NavBar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm hover:bg-gray-50"
+              className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm hover:bg-slate-50"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-800">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 font-mono text-sm font-semibold text-slate-600 ring-1 ring-inset ring-slate-200">
                 {initial}
               </span>
-              <span className="max-w-[120px] truncate text-gray-800">
+              <span className="max-w-[120px] truncate text-slate-700">
                 {displayName || "…"}
               </span>
             </button>
             {menuOpen ? (
-              <div className="absolute right-0 z-50 mt-1 w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg">
+              <div className="absolute right-0 z-50 mt-1 w-44 rounded-sm border border-slate-200 bg-white py-1 shadow-lg">
                 <button
                   type="button"
-                  className="block w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50"
+                  className="block w-full px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50"
                   onClick={() => void signOut()}
                 >
                   Sign out

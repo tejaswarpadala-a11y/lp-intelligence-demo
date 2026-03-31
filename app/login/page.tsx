@@ -30,7 +30,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-[calc(100dvh-3rem)] flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900">
           {FUND_CONFIG.fundName}
         </h1>
         <p className="mt-2 text-sm text-gray-600">LP Intelligence Platform</p>
@@ -38,7 +38,7 @@ export default function LoginPage() {
         {isDemoMode ? (
           <div
             role="note"
-            className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-950"
+            className="mt-6 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-950"
           >
             Demo mode — sign in with any Google account to explore the
             platform
@@ -53,7 +53,7 @@ export default function LoginPage() {
           type="button"
           disabled={busy}
           onClick={() => void signInWithGoogle()}
-          className="mt-8 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          className="mt-8 w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm hover:bg-slate-50 disabled:opacity-50"
         >
           {busy ? "Redirecting…" : "Sign in with Google"}
         </button>

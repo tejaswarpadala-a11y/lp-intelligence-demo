@@ -17,7 +17,7 @@ function Spinner() {
   return (
     <span
       aria-hidden
-      className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700"
+      className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"
     />
   );
 }
@@ -208,7 +208,7 @@ export function OutreachSection({
           type="button"
           disabled={busy}
           onClick={() => void onDraft()}
-          className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {busy ? <Spinner /> : null}
           {busy ? "Composing..." : "✉ Draft outreach email"}

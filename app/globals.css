@@ -7,12 +7,13 @@
   --foreground: #171717;
 }
 
+/* Sightline Design System */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #fdfdfb; /* bond-paper — not pure white */
+  color: #0f172a; /* slate-900 */
 }
 
+/* Terminal animation */
 @keyframes blink {
   0%,
   100% {
@@ -20,6 +21,19 @@ body {
   }
   50% {
     opacity: 0;
+  }
+}
+
+/* Border pulse for scan animation (used in sidebar) */
+@keyframes border-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    border-color: rgb(16 185 129);
+  }
+  50% {
+    opacity: 0.3;
+    border-color: rgb(16 185 129 / 0.3);
   }
 }
 

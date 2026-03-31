@@ -175,17 +175,13 @@ function formatCheckSize(enrichment: LPWithEnrichment["enrichment"]): string {
 }
 
 function scoreBadgeClasses(score: ScoreResult): string {
-  if (!score.is_scored) return "bg-gray-100 text-gray-600";
+  if (!score.is_scored)
+    return "bg-slate-50 text-slate-500 border border-slate-200";
   const t = score.total_score;
-  if (t >= 80) return "bg-green-100 text-green-800";
-  if (t >= 60) return "bg-blue-100 text-blue-800";
-  if (t >= 40) return "bg-amber-100 text-amber-800";
-  return "bg-gray-100 text-gray-600";
-}
-
-function scoreBadgeLabel(score: ScoreResult): string {
-  if (!score.is_scored) return "Not scored";
-  return `${score.total_score} · ${score.label}`;
+  if (t >= 80) return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+  if (t >= 60) return "bg-amber-50 text-amber-700 border border-amber-200";
+  if (t >= 40) return "bg-slate-100 text-slate-600 border border-slate-200";
+  return "bg-slate-50 text-slate-400 border border-slate-200";
 }
 
 type SortBy = "score" | "name" | "country";
@@ -452,7 +448,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-3rem)] border-t border-gray-200 bg-white">
+    <div className="flex min-h-[calc(100dvh-3rem)] border-t border-slate-200 bg-white">
       {toast ? (
         <div
           className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white shadow-lg"
@@ -463,7 +459,7 @@ export default function Home() {
       ) : null}
 
       {/* Left panel */}
-      <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-gray-50">
+      <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-slate-50">
         <div className="space-y-8 p-5">
           <section>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -476,7 +472,7 @@ export default function Home() {
                 aria-checked={emergingManagerFilter}
                 onClick={() => setEmergingManagerFilter((v) => !v)}
                 className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  emergingManagerFilter ? "bg-blue-600" : "bg-gray-300"
+                  emergingManagerFilter ? "bg-emerald-600" : "bg-slate-300"
                 }`}
               >
                 <span
@@ -507,7 +503,7 @@ export default function Home() {
                     <label htmlFor={`w-${key}`} className="text-gray-800">
                       {WEIGHT_LABELS[key]}
                     </label>
-                    <span className="tabular-nums text-gray-600">
+                    <span className="font-mono text-gray-600">
                       {weights[key]}%
                     </span>
                   </div>
@@ -524,13 +520,13 @@ export default function Home() {
                         rebalanceWeights(weights, key, Number(e.target.value)),
                       )
                     }
-                    className="w-full accent-blue-600 disabled:opacity-50"
+                    className="w-full accent-slate-700 disabled:opacity-50"
                   />
                 </div>
               ))}
             </div>
             <p
-              className={`mt-2 text-sm tabular-nums ${
+              className={`mt-2 text-sm font-mono ${
                 weightSum !== 100 ? "font-medium text-red-600" : "text-gray-600"
               }`}
             >
@@ -553,7 +549,7 @@ export default function Home() {
                       <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
                         <input
                           type="checkbox"
-                          className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
                           checked={selectedListSegments.includes(seg)}
                           onChange={() => toggleSegment(seg)}
                           disabled={loading}
@@ -574,7 +570,7 @@ export default function Home() {
                       <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
                         <input
                           type="checkbox"
-                          className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
                           checked={selectedCategories.includes(cat)}
                           onChange={() => toggleCategory(cat)}
                           disabled={loading}
@@ -595,7 +591,7 @@ export default function Home() {
                       <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
                         <input
                           type="checkbox"
-                          className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="mt-0.5 rounded border-slate-300 text-slate-700 focus:ring-slate-300"
                           checked={selectedCountries.includes(code)}
                           onChange={() => toggleCountry(code)}
                           disabled={loading}
@@ -609,9 +605,11 @@ export default function Home() {
               <div>
                 <div className="mb-1 flex justify-between text-sm">
                   <label htmlFor="min-score" className="text-gray-800">
-                    Show LPs scoring {minScoreThreshold} or above
+                    Show LPs scoring{" "}
+                    <span className="font-mono">{minScoreThreshold}</span> or
+                    above
                   </label>
-                  <span className="tabular-nums text-gray-600">
+                  <span className="font-mono text-gray-600">
                     {minScoreThreshold}
                   </span>
                 </div>
@@ -625,7 +623,7 @@ export default function Home() {
                   onChange={(e) =>
                     setMinScoreThreshold(Number(e.target.value))
                   }
-                  className="w-full accent-blue-600"
+                  className="w-full accent-slate-700"
                 />
               </div>
             </div>
@@ -636,10 +634,10 @@ export default function Home() {
               Saved presets
             </h2>
             <div className="relative">
-              <button
+                <button
                 type="button"
                 onClick={() => setPresetMenuOpen((v) => !v)}
-                className="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50"
+                  className="mb-2 w-full rounded border border-slate-300 bg-white px-3 py-2 text-left text-sm text-gray-800 hover:bg-slate-50"
               >
                 {selectedPresetId
                   ? presets.find((p) => p.id === selectedPresetId)?.name ??
@@ -647,7 +645,7 @@ export default function Home() {
                   : "Select a preset..."}
               </button>
               {presetMenuOpen ? (
-                <div className="absolute left-0 right-0 z-40 max-h-64 overflow-y-auto rounded border border-gray-200 bg-white shadow">
+                <div className="absolute left-0 right-0 z-40 max-h-64 overflow-y-auto rounded border border-slate-200 bg-white shadow">
                   {presets.length === 0 ? (
                     <p className="px-3 py-2 text-sm text-gray-500">
                       No presets yet
@@ -656,7 +654,7 @@ export default function Home() {
                     presets.map((p) => (
                       <div
                         key={p.id}
-                        className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50"
+                        className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-slate-50"
                       >
                         <button
                           type="button"
@@ -686,7 +684,7 @@ export default function Home() {
                   Preset name:
                 </label>
                 <input
-                  className="w-full rounded border border-gray-300 bg-white px-2 py-2 text-sm text-gray-900"
+                  className="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm text-gray-900"
                   value={presetNameDraft}
                   onChange={(e) => setPresetNameDraft(e.target.value)}
                   onKeyDown={(e) => {
@@ -702,7 +700,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => void onSavePresetCommit()}
-                    className="flex-1 rounded border border-blue-600 bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    className="flex-1 rounded border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
                   >
                     Save
                   </button>
@@ -712,7 +710,7 @@ export default function Home() {
                       setSavingPreset(false);
                       setPresetNameDraft("");
                     }}
-                    className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -722,7 +720,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setSavingPreset(true)}
-                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50"
               >
                 Save current filters as preset
               </button>
@@ -733,11 +731,14 @@ export default function Home() {
 
       {/* Right panel */}
       <main className="min-w-0 flex-1 overflow-y-auto bg-white">
-        <div className="border-b border-gray-100 px-6 py-4">
+        <div className="border-b border-slate-100 px-6 py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-gray-700">
               <span className="font-medium text-gray-900">
-                {loading ? "…" : filteredAndScored.length} LPs
+                <span className="font-mono">
+                  {loading ? "…" : filteredAndScored.length}
+                </span>{" "}
+                LPs
               </span>{" "}
               match your filters
               {emergingManagerFilter &&
@@ -765,7 +766,7 @@ export default function Home() {
                 id="sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortBy)}
-                className="rounded border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900"
+                className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-gray-900"
               >
                 <option value="score">Fit Score ↓</option>
                 <option value="name">Name A-Z</option>
@@ -784,11 +785,11 @@ export default function Home() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <li
                   key={i}
-                  className="animate-pulse rounded-lg border border-gray-100 bg-gray-50 p-4"
+                  className="animate-pulse rounded-sm border border-slate-100 bg-slate-50 p-4"
                 >
-                  <div className="h-4 w-1/3 rounded bg-gray-200" />
-                  <div className="mt-3 h-3 w-2/3 rounded bg-gray-200" />
-                  <div className="mt-2 h-3 w-1/2 rounded bg-gray-200" />
+                  <div className="h-4 w-1/3 rounded bg-slate-200" />
+                  <div className="mt-3 h-3 w-2/3 rounded bg-slate-200" />
+                  <div className="mt-2 h-3 w-1/2 rounded bg-slate-200" />
                 </li>
               ))}
             </ul>
@@ -804,47 +805,61 @@ export default function Home() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="mt-6 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
               >
                 Reset all filters
               </button>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-slate-100">
               {filteredAndScored.map((lp) => (
                 <li
                   key={lp.id}
-                  className="group flex flex-col gap-3 py-4 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="group flex flex-col gap-3 py-4 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/lp/${lp.id}`}
-                        className="font-semibold text-gray-900 hover:text-blue-700 hover:underline"
+                        className="font-serif font-semibold text-gray-900 hover:text-slate-700 hover:underline"
                       >
                         {lp.name}
                       </Link>
                       {lp.lp_category ? (
-                        <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                        <span className="rounded-sm border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-500">
                           {lp.lp_category}
                         </span>
                       ) : null}
                       <span
-                        className={`rounded px-2 py-0.5 text-xs font-medium ${scoreBadgeClasses(
+                        className={`rounded-sm px-2 py-0.5 text-xs font-medium ${scoreBadgeClasses(
                           lp.score,
                         )}`}
                       >
-                        {scoreBadgeLabel(lp.score)}
+                        {lp.score.is_scored ? (
+                          <>
+                            <span className="font-mono">
+                              {lp.score.total_score}
+                            </span>
+                            <span> · {lp.score.label}</span>
+                          </>
+                        ) : (
+                          <span>Not scored</span>
+                        )}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                       {lp.location ? <span>{lp.location}</span> : null}
                       {lp.list_segment ? (
-                        <span className="rounded bg-gray-100 px-1.5 py-px text-gray-600">
+                        <span className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-px text-slate-500">
                           {lp.list_segment}
                         </span>
                       ) : null}
-                      <span>Check size: {formatCheckSize(lp.enrichment)}</span>
+                      <span>
+                        Check size:{" "}
+                        <span className="font-mono">
+                          {formatCheckSize(lp.enrichment)}
+                        </span>
+                      </span>
                     </div>
                   </div>
                   <AddToShortlistDropdown

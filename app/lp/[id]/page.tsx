@@ -60,15 +60,18 @@ function reasonClass(signal: ScoreBreakdownSignal): string {
 }
 
 function fitLabelBadgeClass(label: ScoreResult["label"]): string {
-  if (label === "Strong fit") return "bg-green-100 text-green-800";
-  if (label === "Moderate fit") return "bg-blue-100 text-blue-800";
-  if (label === "Weak fit") return "bg-amber-100 text-amber-800";
-  return "bg-gray-100 text-gray-600";
+  if (label === "Strong fit")
+    return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+  if (label === "Moderate fit")
+    return "bg-amber-50 text-amber-700 border border-amber-200";
+  if (label === "Weak fit")
+    return "bg-slate-100 text-slate-600 border border-slate-200";
+  return "bg-slate-50 text-slate-400 border border-slate-200";
 }
 
 function totalStatusClass(label: ScoreResult["label"]): string {
   if (label === "Strong fit") return "text-green-700";
-  if (label === "Moderate fit") return "text-blue-700";
+  if (label === "Moderate fit") return "text-amber-700";
   if (label === "Weak fit") return "text-amber-700";
   return "text-gray-600";
 }
@@ -116,7 +119,7 @@ function DetailLink({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-sm text-blue-600 hover:underline"
+        className="text-sm text-slate-600 hover:underline"
       >
         Open ↗
       </a>
@@ -169,17 +172,17 @@ export default async function LPProfilePage({
 
       {/* Section 1 — Overview */}
       <section className="mb-12">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900">
           {lp.name}
         </h1>
         <div className="mt-3 flex flex-wrap gap-2">
           {lp.lp_category ? (
-            <span className="rounded-md bg-gray-100 px-2.5 py-1 text-sm text-gray-700">
+            <span className="rounded-sm border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm text-slate-600">
               {lp.lp_category}
             </span>
           ) : null}
           {lp.list_segment ? (
-            <span className="rounded-md bg-blue-100 px-2.5 py-1 text-sm text-blue-800">
+            <span className="rounded-sm border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm text-slate-600">
               {lp.list_segment}
             </span>
           ) : null}
@@ -207,7 +210,7 @@ export default async function LPProfilePage({
         </div>
 
         {lp.summary?.trim() ? (
-          <div className="mt-6 rounded-lg bg-gray-100 p-4 text-sm leading-relaxed text-gray-800">
+          <div className="mt-6 rounded-sm bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
             {lp.summary}
           </div>
         ) : null}
@@ -219,17 +222,17 @@ export default async function LPProfilePage({
           Fit score breakdown
         </h2>
         {!score.is_scored ? (
-          <div className="rounded-lg bg-gray-100 px-4 py-6 text-sm text-gray-700">
+          <div className="rounded-sm bg-slate-50 px-4 py-6 text-sm text-slate-700">
             Not yet scored — enrichment data needed to calculate fit
           </div>
         ) : (
           <>
             <div className="mb-6 flex flex-wrap items-baseline gap-3">
-              <span className="text-5xl font-bold tabular-nums text-gray-900">
+              <span className="font-mono text-5xl font-bold text-gray-900">
                 {score.total_score}
               </span>
               <span
-                className={`rounded-md px-2.5 py-1 text-sm font-medium ${fitLabelBadgeClass(
+                className={`rounded-sm px-2.5 py-1 text-sm font-medium ${fitLabelBadgeClass(
                   score.label,
                 )}`}
               >
@@ -237,9 +240,9 @@ export default async function LPProfilePage({
               </span>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <div className="overflow-x-auto rounded-sm border border-slate-200">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
+                <thead className="border-b border-slate-200 bg-slate-50">
                   <tr>
                     <th className="px-4 py-2 font-medium text-gray-700">
                       Signal
@@ -255,7 +258,7 @@ export default async function LPProfilePage({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-100">
                   {(
                     [
                       ["Healthcare focus", score.breakdown.healthcare],
@@ -273,10 +276,10 @@ export default async function LPProfilePage({
                   ).map(([label, signal]) => (
                     <tr key={label}>
                       <td className="px-4 py-2 text-gray-900">{label}</td>
-                      <td className="px-4 py-2 tabular-nums text-gray-900">
+                      <td className="px-4 py-2 font-mono text-gray-900">
                         {Math.round(signal.score)}
                       </td>
-                      <td className="px-4 py-2 tabular-nums text-gray-600">
+                      <td className="px-4 py-2 font-mono text-gray-600">
                         {signal.max}
                       </td>
                       <td className={`px-4 py-2 ${reasonClass(signal)}`}>
@@ -284,12 +287,12 @@ export default async function LPProfilePage({
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-gray-50 font-medium">
+                  <tr className="bg-slate-50 font-medium">
                     <td className="px-4 py-2 text-gray-900">TOTAL</td>
-                    <td className="px-4 py-2 tabular-nums text-gray-900">
+                    <td className="px-4 py-2 font-mono text-gray-900">
                       {score.total_score}
                     </td>
-                    <td className="px-4 py-2 tabular-nums text-gray-600">
+                    <td className="px-4 py-2 font-mono text-gray-600">
                       100
                     </td>
                     <td
@@ -310,7 +313,7 @@ export default async function LPProfilePage({
                   Data confidence: {enrichment.confidence_score}% · AI enriched
                 </p>
                 {enrichment.confidence_score < 60 ? (
-                  <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">
+                  <p className="rounded-sm bg-amber-50 px-3 py-2 text-amber-900">
                     Low confidence — verify manually
                   </p>
                 ) : null}
@@ -326,7 +329,7 @@ export default async function LPProfilePage({
           Decision Maker
         </h2>
         {enrichment?.confidence_score != null && enrichment.confidence_score < 60 ? (
-          <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <p className="mb-4 rounded-sm bg-amber-50 px-3 py-2 text-sm text-amber-900">
             Low confidence — verify manually
           </p>
         ) : null}
@@ -345,7 +348,7 @@ export default async function LPProfilePage({
                   href={dmLinkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-slate-600 hover:underline"
                 >
                   Profile ↗
                 </a>
@@ -388,7 +391,7 @@ export default async function LPProfilePage({
           <ProfileToastButton
             label="↻ Re-enrich this record"
             toastMessage="Re-enrichment queued — demo mode, no API call will run"
-            className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+            className="rounded-sm border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
           />
         </div>
       </section>
@@ -399,7 +402,7 @@ export default async function LPProfilePage({
           Investment Profile
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">
               Healthcare Focus
             </p>
@@ -413,7 +416,7 @@ export default async function LPProfilePage({
               <p className="mt-2 font-medium text-gray-500">Unknown</p>
             )}
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">
               Invests in Funds
             </p>
@@ -425,28 +428,28 @@ export default async function LPProfilePage({
               <p className="mt-2 font-medium text-gray-500">Unknown</p>
             )}
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">
               Investment Philosophy
             </p>
             {enrichment?.investment_philosophy === "value_based" ? (
               <p className="mt-2 font-medium text-green-700">Value-based ✓</p>
             ) : enrichment?.investment_philosophy === "growth_oriented" ? (
-              <p className="mt-2 font-medium text-blue-700">Growth-oriented</p>
+              <p className="mt-2 font-medium text-amber-700">Growth-oriented</p>
             ) : enrichment?.investment_philosophy === "unicorn_focused" ? (
               <p className="mt-2 font-medium text-red-600">Unicorn-focused</p>
             ) : (
               <p className="mt-2 font-medium text-gray-500">Unknown</p>
             )}
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-sm border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">Check Size</p>
-            <p className="mt-2 font-medium text-gray-900">
+            <p className="mt-2 font-mono font-medium text-gray-900">
               {formatCheckSizeRange(enrichment)}
             </p>
           </div>
         </div>
-        <div className="mt-4 rounded-lg bg-gray-100 p-4 text-sm italic text-gray-800">
+        <div className="mt-4 rounded-sm bg-slate-50 p-4 text-sm italic text-slate-700">
           {enrichment?.thesis_notes?.trim() ? (
             enrichment.thesis_notes
           ) : (

@@ -46,10 +46,10 @@ function formatAddedDate(iso: string): string {
 }
 
 function snapshotBadgeClasses(score: number): string {
-  if (score >= 80) return "bg-green-100 text-green-800";
-  if (score >= 60) return "bg-blue-100 text-blue-800";
-  if (score >= 40) return "bg-amber-100 text-amber-800";
-  return "bg-gray-100 text-gray-600";
+  if (score >= 80) return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+  if (score >= 60) return "bg-amber-50 text-amber-700 border border-amber-200";
+  if (score >= 40) return "bg-slate-100 text-slate-600 border border-slate-200";
+  return "bg-slate-50 text-slate-400 border border-slate-200";
 }
 
 function snapshotLabel(score: number): string {
@@ -57,10 +57,6 @@ function snapshotLabel(score: number): string {
   if (score >= 60) return "Moderate fit";
   if (score >= 40) return "Weak fit";
   return "Poor fit";
-}
-
-function snapshotBadge(score: number): string {
-  return `${score} · ${snapshotLabel(score)}`;
 }
 
 function sanitizeFilePart(s: string): string {
@@ -277,7 +273,7 @@ export default function ShortlistPage() {
   return (
     <div className="mx-auto max-w-6xl px-8 py-8 text-gray-900">
       <div className="mb-8 flex flex-wrap items-center gap-4">
-        <Link href="/" className="text-sm text-blue-600 hover:underline">
+        <Link href="/" className="text-sm text-slate-600 hover:underline">
           ← Filter &amp; Search
         </Link>
       </div>
@@ -293,25 +289,25 @@ export default function ShortlistPage() {
       {loadingList ? (
         <p className="text-sm text-gray-500">Loading shortlists…</p>
       ) : summary.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
+        <div className="rounded-sm border border-slate-200 bg-slate-50 p-8 text-center">
           <p className="text-gray-800">
             No shortlists yet. Add LPs from Filter &amp; Search.
           </p>
           <Link
             href="/"
-            className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="mt-4 inline-block rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
           >
             Go to Filter &amp; Search
           </Link>
         </div>
       ) : (
         <>
-          <div className="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1">
               {editingName && detail ? (
                 <input
                   autoFocus
-                  className="w-full max-w-md rounded border border-gray-300 px-2 py-1 text-2xl font-bold"
+                  className="w-full max-w-md rounded border border-slate-300 px-2 py-1 text-2xl font-bold"
                   value={nameDraft}
                   onChange={(e) => setNameDraft(e.target.value)}
                   onBlur={() => void onRenameCommit()}
@@ -326,7 +322,7 @@ export default function ShortlistPage() {
               ) : (
                 <button
                   type="button"
-                  className="text-left text-2xl font-bold text-gray-900 hover:text-blue-700"
+                  className="text-left text-2xl font-bold text-gray-900 hover:text-slate-700"
                   onClick={() => {
                     if (detail) {
                       setNameDraft(detail.shortlist.name);
@@ -338,7 +334,8 @@ export default function ShortlistPage() {
                 </button>
               )}
               <p className="mt-2 text-sm text-gray-600">
-                {stats.n} LPs · Avg score: {stats.n ? stats.avg : "—"}
+                <span className="font-mono">{stats.n}</span> LPs · Avg score:{" "}
+                <span className="font-mono">{stats.n ? stats.avg : "—"}</span>
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -349,7 +346,7 @@ export default function ShortlistPage() {
                 id="sl-pick"
                 value={selectedId ?? ""}
                 onChange={(e) => setSelectedId(e.target.value || null)}
-                className="rounded-md border border-gray-300 bg-white px-2 py-2 text-sm"
+                className="rounded-md border border-slate-300 bg-white px-2 py-2 text-sm"
               >
                 {summary.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -360,7 +357,7 @@ export default function ShortlistPage() {
               <button
                 type="button"
                 onClick={() => void onNewShortlist()}
-                className="rounded-md border border-blue-600 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 + New shortlist
               </button>
@@ -370,20 +367,20 @@ export default function ShortlistPage() {
           {loadingDetail ? (
             <p className="text-sm text-gray-500">Loading…</p>
           ) : !detail || detail.lps.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
+            <div className="rounded-sm border border-dashed border-slate-300 bg-white p-12 text-center">
               <p className="text-gray-800">This shortlist is empty.</p>
               <Link
                 href="/"
-                className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="mt-4 inline-block rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
               >
                 Go to Filter &amp; Search
               </Link>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto rounded-lg border border-gray-200">
-                <table className="min-w-[1100px] w-full divide-y divide-gray-100 text-left text-sm">
-                  <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <div className="overflow-x-auto rounded-sm border border-slate-200">
+                <table className="min-w-[1100px] w-full divide-y divide-slate-100 text-left text-sm">
+                  <thead className="bg-slate-50 text-xs uppercase tracking-wide text-gray-500">
                     <tr>
                       <th className="px-3 py-2">LP Name</th>
                       <th className="px-3 py-2">Category</th>
@@ -397,7 +394,7 @@ export default function ShortlistPage() {
                       <th className="px-3 py-2 w-10" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
+                  <tbody className="divide-y divide-slate-100 bg-white">
                     {detail.lps.map((r) => {
                       const { lp, enrichment, fit_score, added_at } = r;
                       const email =
@@ -408,18 +405,18 @@ export default function ShortlistPage() {
                         enrichment?.decision_maker_linkedin ?? null,
                       );
                       return (
-                        <tr key={lp.id} className="hover:bg-gray-50">
+                        <tr key={lp.id} className="hover:bg-slate-50">
                           <td className="px-3 py-2 font-semibold">
                             <Link
                               href={`/lp/${lp.id}`}
-                              className="text-blue-700 hover:underline"
+                              className="font-serif text-slate-900 hover:underline"
                             >
                               {lp.name}
                             </Link>
                           </td>
                           <td className="px-3 py-2">
                             {lp.lp_category ? (
-                              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700">
+                              <span className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs text-slate-600">
                                 {lp.lp_category}
                               </span>
                             ) : (
@@ -431,14 +428,15 @@ export default function ShortlistPage() {
                           </td>
                           <td className="px-3 py-2">
                             <span
-                              className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${snapshotBadgeClasses(
+                              className={`inline-flex rounded-sm px-2 py-0.5 text-xs font-medium ${snapshotBadgeClasses(
                                 fit_score,
                               )}`}
                             >
-                              {snapshotBadge(fit_score)}
+                              <span className="font-mono">{fit_score}</span>
+                              <span> · {snapshotLabel(fit_score)}</span>
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-gray-700">
+                          <td className="px-3 py-2 font-mono text-gray-700">
                             {formatCheckSize(
                               enrichment?.check_size_min,
                               enrichment?.check_size_max,
@@ -463,7 +461,7 @@ export default function ShortlistPage() {
                                 href={dmLi}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex text-blue-600 hover:underline"
+                                className="inline-flex text-slate-600 hover:underline"
                                 title="LinkedIn"
                               >
                                 <span aria-hidden>🔗</span>
@@ -473,7 +471,7 @@ export default function ShortlistPage() {
                               "—"
                             )}
                           </td>
-                          <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-600">
                             {formatAddedDate(added_at)}
                           </td>
                           <td className="px-3 py-2">
@@ -497,14 +495,14 @@ export default function ShortlistPage() {
                 <button
                   type="button"
                   onClick={exportCsv}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+                  className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-slate-50"
                 >
                   ↓ Export as CSV
                 </button>
                 <button
                   type="button"
                   onClick={() => void copyAllEmails()}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+                  className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-slate-50"
                 >
                   ⧉ Copy all emails
                 </button>

@@ -34,7 +34,7 @@ export function ExportButton({ rows, filenameBase }: ExportButtonProps) {
     <button
       type="button"
       onClick={download}
-      className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+      className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-slate-50"
     >
       Export profile as CSV
     </button>

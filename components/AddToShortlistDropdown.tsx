@@ -150,14 +150,14 @@ export function AddToShortlistDropdown({
         onClick={() => setOpen((v) => !v)}
         className={
           className ??
-          "shrink-0 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          "shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-slate-50 disabled:opacity-50"
         }
       >
         {buttonLabel}
       </button>
       {open ? (
         <div
-          className="absolute right-0 z-50 mt-1 max-h-72 w-56 overflow-y-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute right-0 z-50 mt-1 max-h-72 w-56 overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg"
           role="menu"
         >
           {loadingLists ? (
@@ -172,22 +172,22 @@ export function AddToShortlistDropdown({
                 role="menuitem"
                 disabled={busy}
                 onClick={() => void handlePickShortlist(sl.id, sl.name)}
-                className="block w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                className="block w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-slate-50 disabled:opacity-50"
               >
                 <span className="font-medium">{sl.name}</span>
                 <span className="ml-1 text-xs text-gray-500">
-                  ({sl.lp_count})
+                  (<span className="font-mono">{sl.lp_count}</span>)
                 </span>
               </button>
             ))
           )}
-          <div className="my-1 border-t border-gray-100" />
+          <div className="my-1 border-t border-slate-100" />
           <button
             type="button"
             role="menuitem"
             disabled={busy}
             onClick={() => void handleNewShortlist()}
-            className="block w-full px-3 py-2 text-left text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+            className="block w-full px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             + New shortlist
           </button>
