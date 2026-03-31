@@ -102,7 +102,7 @@ export async function draftOutreachEmail(lpId: string): Promise<DraftResult> {
 
   try {
     const msg = await anthropic.messages.create({
-      model: "claude-haiku-4-20250514",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 800,
       system,
       messages: [{ role: "user", content: userPrompt }],

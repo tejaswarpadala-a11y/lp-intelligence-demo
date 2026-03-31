@@ -457,7 +457,12 @@ export default async function LPProfilePage({
         </div>
       </section>
 
-      <OutreachSection lpId={lp.id} />
+      <OutreachSection
+        lpId={lp.id}
+        lp={lp}
+        enrichment={enrichment}
+        score={score}
+      />
 
       {/* Section 6 — Actions */}
       <section className="flex flex-wrap gap-3">
