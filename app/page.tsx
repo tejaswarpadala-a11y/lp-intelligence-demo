@@ -1,7 +1,6 @@
 "use client";
 
 import { AddToShortlistDropdown } from "@/components/AddToShortlistDropdown";
-import { FUND_CONFIG } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
 import {
   calculateScore,
@@ -368,23 +367,6 @@ export default function Home() {
       {/* Left panel */}
       <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto border-r border-gray-200 bg-gray-50">
         <div className="space-y-8 p-5">
-          <header>
-            <p className="text-lg font-semibold text-gray-900">
-              {FUND_CONFIG.fundName}
-            </p>
-            <p className="text-sm text-gray-600">LP Intelligence Platform</p>
-            <nav className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm">
-              <span className="font-bold text-gray-900">Filter &amp; Search</span>
-              <span className="text-gray-300">|</span>
-              <Link
-                href="/shortlist"
-                className="text-blue-600 hover:text-blue-800"
-              >
-                Shortlist
-              </Link>
-            </nav>
-          </header>
-
           <section>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
               Pre-filters

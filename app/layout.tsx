@@ -1,6 +1,7 @@
+import { ConditionalNavBar } from "@/components/ConditionalNavBar";
+import { FUND_CONFIG, isDemoMode } from "@/lib/config";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { FUND_CONFIG, isDemoMode } from "@/lib/config";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -38,7 +39,10 @@ export default function RootLayout({
             are represented.
           </div>
         ) : null}
-        <div className="min-h-0 bg-white text-gray-900">{children}</div>
+        <div className="min-h-0 bg-white text-gray-900">
+          <ConditionalNavBar />
+          {children}
+        </div>
       </body>
     </html>
   );

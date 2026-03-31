@@ -15,9 +15,46 @@ function isUniqueViolation(error: { code?: string; message?: string }): boolean 
   );
 }
 
+async function requireUserId(
+  supabase: ReturnType<typeof createClient>,
+): Promise<string> {
+  if (process.env.DEMO_MODE === "true") return PLACEHOLDER_USER_ID;
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error || !user) throw new Error("Not authenticated");
+  return user.id;
+}
+
+async function assertOwnsShortlist(
+  supabase: ReturnType<typeof createClient>,
+  shortlistId: string,
+  userId: string,
+): Promise<void> {
+  let q = supabase
+    .from("shortlists")
+    .select("id")
+    .eq("id", shortlistId);
+
+  if (process.env.DEMO_MODE === "true") {
+    q = q.or(`created_by.eq.${userId},created_by.is.null`);
+  } else {
+    q = q.eq("created_by", userId);
+  }
+
+  const { data, error } = await q.maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("Shortlist not found");
+}
+
 export async function getUserShortlists(): Promise<UserShortlistSummary[]> {
   const supabase = createClient();
-  const q = supabase
+  const userId = await requireUserId(supabase);
+
+  let q = supabase
     .from("shortlists")
     .select(
       `
@@ -27,8 +64,13 @@ export async function getUserShortlists(): Promise<UserShortlistSummary[]> {
       shortlist_lps(count)
     `,
     )
-    .or(`created_by.eq.${PLACEHOLDER_USER_ID},created_by.is.null`)
     .order("created_at", { ascending: true });
+
+  if (process.env.DEMO_MODE === "true") {
+    q = q.or(`created_by.eq.${userId},created_by.is.null`);
+  } else {
+    q = q.eq("created_by", userId);
+  }
 
   const { data, error } = await q;
   if (error) throw error;
@@ -50,11 +92,13 @@ export async function getUserShortlists(): Promise<UserShortlistSummary[]> {
 
 export async function createShortlist(name: string): Promise<{ id: string }> {
   const supabase = createClient();
+  const userId = await requireUserId(supabase);
+
   const { data, error } = await supabase
     .from("shortlists")
     .insert({
       name: name.trim() || "Untitled",
-      created_by: PLACEHOLDER_USER_ID,
+      created_by: userId,
     })
     .select("id")
     .single();
@@ -69,6 +113,9 @@ export async function addLPToShortlist(
   fitScore: number,
 ): Promise<{ success: true } | { already_exists: true }> {
   const supabase = createClient();
+  const userId = await requireUserId(supabase);
+  await assertOwnsShortlist(supabase, shortlistId, userId);
+
   const score = Math.round(
     Math.min(100, Math.max(0, Number.isFinite(fitScore) ? fitScore : 0)),
   );
@@ -76,7 +123,7 @@ export async function addLPToShortlist(
     shortlist_id: shortlistId,
     lp_id: lpId,
     fit_score: score,
-    added_by: PLACEHOLDER_USER_ID,
+    added_by: userId,
   });
 
   if (error) {
@@ -91,6 +138,9 @@ export async function removeLPFromShortlist(
   lpId: string,
 ): Promise<void> {
   const supabase = createClient();
+  const userId = await requireUserId(supabase);
+  await assertOwnsShortlist(supabase, shortlistId, userId);
+
   const { error } = await supabase
     .from("shortlist_lps")
     .delete()
@@ -104,13 +154,24 @@ export async function renameShortlist(
   newName: string,
 ): Promise<void> {
   const supabase = createClient();
-  const { error } = await supabase
+  const userId = await requireUserId(supabase);
+  await assertOwnsShortlist(supabase, shortlistId, userId);
+
+  let q = supabase
     .from("shortlists")
     .update({
       name: newName.trim() || "Untitled",
       updated_at: new Date().toISOString(),
     })
     .eq("id", shortlistId);
+
+  if (process.env.DEMO_MODE === "true") {
+    q = q.or(`created_by.eq.${userId},created_by.is.null`);
+  } else {
+    q = q.eq("created_by", userId);
+  }
+
+  const { error } = await q;
   if (error) throw error;
 }
 
@@ -132,12 +193,20 @@ export async function getShortlistWithLPs(
   shortlistId: string,
 ): Promise<ShortlistWithLPs | null> {
   const supabase = createClient();
+  const userId = await requireUserId(supabase);
 
-  const { data: shortlistRow, error: slErr } = await supabase
+  let slq = supabase
     .from("shortlists")
     .select("id, name, created_at, updated_at")
-    .eq("id", shortlistId)
-    .maybeSingle();
+    .eq("id", shortlistId);
+
+  if (process.env.DEMO_MODE === "true") {
+    slq = slq.or(`created_by.eq.${userId},created_by.is.null`);
+  } else {
+    slq = slq.eq("created_by", userId);
+  }
+
+  const { data: shortlistRow, error: slErr } = await slq.maybeSingle();
 
   if (slErr) throw slErr;
   if (!shortlistRow) return null;
@@ -186,5 +255,49 @@ export async function getShortlistWithLPs(
       updated_at: String(shortlistRow.updated_at),
     },
     lps,
+  };
+}
+
+export async function getMostRecentShortlistNav(): Promise<{
+  id: string;
+  name: string;
+  lp_count: number;
+} | null> {
+  const supabase = createClient();
+  const userId = await requireUserId(supabase);
+
+  let q = supabase
+    .from("shortlists")
+    .select(
+      `
+      id,
+      name,
+      shortlist_lps(count)
+    `,
+    );
+
+  if (process.env.DEMO_MODE === "true") {
+    q = q.or(`created_by.eq.${userId},created_by.is.null`);
+  } else {
+    q = q.eq("created_by", userId);
+  }
+
+  const { data, error } = await q
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const rawCount = data.shortlist_lps as { count?: number }[] | undefined;
+  const lp_count =
+    Array.isArray(rawCount) && rawCount[0] && typeof rawCount[0].count === "number"
+      ? rawCount[0].count
+      : 0;
+
+  return {
+    id: String(data.id),
+    name: String(data.name),
+    lp_count,
   };
 }
