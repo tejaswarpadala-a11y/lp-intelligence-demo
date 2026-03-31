@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-white text-gray-900 antialiased`}
       >
         {isDemoMode ? (
           <div
@@ -38,7 +38,7 @@ export default function RootLayout({
             are represented.
           </div>
         ) : null}
-        {children}
+        <div className="min-h-0 bg-white text-gray-900">{children}</div>
       </body>
     </html>
   );
